@@ -1,64 +1,57 @@
 class Application {
     constructor() {
-        this.tasks = localStorage.getItem("tasks");
-        if (null === this.tasks) {
-            localStorage.setItem("tasks", JSON.stringify([]));
-            this.tasks = JSON.parse(localStorage.getItem("tasks"));
-        } else {
-            this.tasks = JSON.parse(this.tasks);
-        }
+        this.tasks = JSON.parse(localStorage.getItem("tasks")) || [];
         this.updateTheListUI();
-
         this.addKeyBoardListeners();
     }
 
-
     updateTheListUI() {
-        let node = document.querySelector(".tasks__list");
-        while (node.firstChild) {
-            node.removeChild(node.firstChild);
-        }
+        const taskList = document.querySelector(".tasks__list");
+        taskList.innerHTML = ''; // Clear the task list
 
+        this.tasks.forEach((task, index) => {
+            const taskElement = document.createElement("p");
+            taskElement.textContent = task;
+            taskElement.classList.add("task__value");
+            taskElement.addEventListener('click', () => {
+                this.removeTask(index);
+            });
 
-        this.tasks.forEach((elem, index) => {
-            let p = document.createElement("p");
-            p.onclick = () => {
-                this.tasks.splice(index, 1);
-                this.saveToTasks();
-                this.updateTheListUI();
-
-            };
-            p.innerHTML = elem;
-            p.setAttribute("index", index);
-            p.classList.add("task__value");
-
-            document.querySelector(".tasks__list").appendChild(p);
-        })
+            taskList.appendChild(taskElement);
+        });
     }
 
-    saveToTasks() {
-        localStorage.setItem("tasks", JSON.stringify(this.tasks))
+    removeTask(index) {
+        this.tasks.splice(index, 1);
+        this.saveTasks();
+        this.updateTheListUI();
+    }
+
+    saveTasks() {
+        localStorage.setItem("tasks", JSON.stringify(this.tasks));
     }
 
     addKeyBoardListeners() {
-        document.querySelector("input").addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                this.tasks.push(document.querySelector("input").value);
-                this.saveToTasks();
+        const inputElement = document.querySelector("input");
+
+        inputElement.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                this.tasks.push(inputElement.value);
+                this.saveTasks();
                 this.updateTheListUI();
-                document.querySelector("input").value = "";
+                inputElement.value = "";
             }
         });
 
         document.addEventListener("keydown", (event) => {
-            console.log(event)
-            if (event.code == "Space") {
-                document.querySelector(".container__right > p").innerHTML = this.tasks[Math.floor(Math.random() * this.tasks.length)];
+            if (event.code === "Space" && this.tasks.length > 0) {
+                const randomTask = this.tasks[Math.floor(Math.random() * this.tasks.length)];
+                document.querySelector(".container__right > p").textContent = randomTask;
             }
-        })
+        });
     }
 }
 
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
     window.app = new Application();
-}
+});
